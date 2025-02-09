@@ -1,42 +1,35 @@
-name: - name: Checkout Repository
-        uses: actions/checkout@v3
-
-      - name: Set up SSH Key
-        run: Deploy to EC2
+name: Deploy to EC2
 
 on:
   push:
     branches:
-      - main |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-          chmod   # תוכל לשנות את זה לסניף הרצוי
+      - main  # Change to your desired branch
 
 jobs:
   deploy:
-600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
-
-      - name    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest
 
     steps:
-      - name:: SSH into Server and Deploy
-        uses: appleboy/ Checkout Repository
-        uses: actions/checkout@ssh-action@master
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSHv3
+      - name: Checkout Repository
+        uses: actions/checkout@v3
 
       - name: Set up SSH Key
         run: |
-          mkdir_USER }}
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+
+      - name: SSH into Server and Deploy
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 22
           script: |
-            echo " -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEYConnected to EC2 successfully!"
+            echo "Connected to EC2 successfully!"
             cd /home/ec2-user/app  # Change to the correct path
-            }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_r git pull origin main  # Pull updates from the repo
+            git pull origin main  # Pull updates from the repo
             chmod +x deploy.sh  # If you have a deploy script
             ./deploy.sh  # Run the deploy
