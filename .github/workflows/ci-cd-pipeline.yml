@@ -1,63 +1,35 @@
-name: CI/CD Pipeline
+name: Deploy to EC2
 
 on:
   push:
     branches:
-      - main
-  pull_request:
-    branches:
-      - main
+      - main  # תוכל לשנות את זה לסניף הרצוי
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Code
+      - name: Checkout Repository
         uses: actions/checkout@v3
 
-      - name: Set Up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '16'
-
-      - name: Install Dependencies
-        run: npm install
-
-      - name: Run Tests
-        run: npm test
-
-      - name: Build Docker Image
-        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/node-app:latest .
-
-      - name: Login to Docker Hub
-        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
-
-      - name: Push Docker Image to Docker Hub
-        run: docker push ${{ secrets.DOCKER_USERNAME }}/node-app:latest
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Debug Secrets
+      - name: Set up SSH Key
         run: |
-          echo "Checking if secrets are available"
-          echo "SERVER_HOST: ${{ secrets.SERVER_HOST }}"
-          echo "SERVER_USER: ${{ secrets.SERVER_USER }}"
-          echo "Checking SSH Key length: $(echo '${{ secrets.SERVER_SSH_KEY }}' | wc -c)"
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
 
       - name: SSH into Server and Deploy
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          timeout: 60s  # Increase timeout
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
           script: |
-            echo "Connected successfully!"
-            docker pull ${{ secrets.DOCKER_USERNAME }}/node-app:latest
-            docker stop node-app || true
-            docker rm node-app || true
-            docker run -d --name node-app -p 3000:3000 ${{ secrets.DOCKER_USERNAME }}/node-app:latest
+            echo "Connected to EC2 successfully!"
+            cd /home/ec2-user/app  # שנה לנתיב הנכון
+            git pull origin main  # מושך עדכונים מה-Repo
+            chmod +x deploy.sh  # אם יש לך סקריפט התקנה
+            ./deploy.sh  # הפעלת הדפלוי
