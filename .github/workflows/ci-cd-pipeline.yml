@@ -1,35 +1,32 @@
-name: Deploy to EC2
+name: "Impressive Deployment Pipeline"
 
 on:
   push:
     branches:
-      - main  # Change to your desired branch
+      - main  # תוכל לשנות את זה לסניף הרצוי
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout Repository
+      # 1. Check out the repository
+      - name: Check out repository
         uses: actions/checkout@v3
 
-      - name: Set up SSH Key
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
-
-      - name: SSH into Server and Deploy
+      # 2. SSH into your EC2 instance and run deployment commands
+      - name: SSH into AWS EC2 and Deploy
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          host: ec2-100-27-208-116.compute-1.amazonaws.com
+          username: ec2-user
+          # IMPORTANT: The following is a public key, not a valid private key.
+          # For a real deployment, replace it with your private key (including the BEGIN/END lines).
+          key: |
+            ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDFPVgsPAesI/EOgQoAJHIhz1+oPx+RwD2qu7hkz9VO1LAXA54aOJytaJocLLPuQ+7opjjbx0LjbONPYQI6IXR6BNfL9oK1OHcf+XENYJtpvTWscZpYayTWWWdEpF9JiwHKTHpx0Q5rUiohduNxRIIiHGicj/hYT4Lqj3kRy2EhBa59oRuUdC7Nwz/62EypMAxlfNkWonreh316Py/43eeS9RTxIgl4pmrtgnBvwyCVoJCYjiwNmqh5LvmszJRuXGGKDSeVQByBHmKIxsnBRpelRbSnyV3T958dUd74LtynQsREx1zRfBubA7Kvlw474uB4QonMeQkxAa5JZd6twsnb
           port: 22
           script: |
             echo "Connected to EC2 successfully!"
-            cd /home/ec2-user/app  # Change to the correct path
-            git pull origin main  # Pull updates from the repo
-            chmod +x deploy.sh  # If you have a deploy script
-            ./deploy.sh  # Run the deploy
+            cd /home/ec2-user/app  # שנה לנתיב הנכון
+            git pull origin main  # מושך עדכונים מה-Repo
+            chmod +x deploy.sh  # אם יש לך סקריפט התקנה
+            ./deploy.sh  # הפעלת הדפלוי
