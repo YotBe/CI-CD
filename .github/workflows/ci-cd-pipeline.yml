@@ -16,7 +16,7 @@ jobs:
       - name: Setup SSH and Deploy
         uses: appleboy/ssh-action@v0.1.3
         with:
-          host: ${{ secrets.SERVER_HOST || 'default-host' }}
+          host: ${{ secrets.SERVER_HOST }}
           username: ec2-user
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
