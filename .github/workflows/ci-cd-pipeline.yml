@@ -1,4 +1,4 @@
-name: Deploy to EC2
+name: CI/CD Pipeline
 
 on:
   push:
@@ -11,16 +11,15 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Setup SSH and Deploy
-        uses: appleboy/ssh-action@master
+        uses: appleboy/ssh-action@v0.1.3
         with:
-          host: ${{ secrets.EC2_HOST }}
+          host: ${{ secrets.SERVER_HOST || 'default-host' }}
           username: ec2-user
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             echo "Connected to EC2 successfully!"
-            cd /home/ec2-user/CI-CD  # שינוי הנתיב לתיקיית הפרויקט שלך
-            git pull origin main  # מושך עדכונים מה-Repo
-           
+            cd /home/ec2-user/CI-CD  # Update to the correct path
+            git pull origin main  # Pull updates from the repo
